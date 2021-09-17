@@ -127,7 +127,8 @@ namespace IdentityServer4.Endpoints.Results
 
         private void AddSecurityHeaders(HttpContext context)
         {
-            context.Response.AddScriptCspHeaders(_options.Csp, "sha256-orD0/VhH8hLqrLxKHD/HUEMdwqX6/0ve7c5hspX5VJ8=");
+            context.Response.AddScriptCspHeaders(_options.Csp, "sha256-qVoI0C254Vi3s3Iwsa3nl2rir6x9eGaSW3YUjo7k7Ms=");
+            // context.Response.AddScriptCspHeaders(_options.Csp, "sha256-orD0/VhH8hLqrLxKHD/HUEMdwqX6/0ve7c5hspX5VJ8=");
 
             var referrer_policy = "no-referrer";
             if (!context.Response.Headers.ContainsKey("Referrer-Policy"))
@@ -159,7 +160,28 @@ namespace IdentityServer4.Endpoints.Results
             return uri;
         }
 
-        private const string FormPostHtml = "<html><head><meta http-equiv='X-UA-Compatible' content='IE=edge' /><base target='_self'/></head><body><form method='post' action='{uri}'>{body}<noscript><button>Click to continue</button></noscript></form><script>window.addEventListener('load', function(){document.forms[0].submit();});</script></body></html>";
+        // The following HTML was update so that the page would be displayed before the POST request was made.
+        // This page loads the idsrv_authorize.css stylesheet which can be used to format this page. Eg. add a "spinner".
+
+        private const string FormPostHtml = @"<html>
+    <head>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+    <base target='_self'/>
+    <title>Authorize - MI</title>
+    <link rel='shortcut icon' type='image/png' href='/images/mi-favicon.png'>
+    <link rel='stylesheet' href='/css/idsrv_authorize.css'>
+    </head>
+    <body>
+        <form method='post' action='{uri}'>
+            {body}
+            <noscript>
+                <button>Click to continue</button>
+            </noscript>
+        </form>
+        <script>window.onload=function(){document.forms[0].submit();};</script>
+    </body>
+</html>";
+        // private const string FormPostHtml = "<html><head><meta http-equiv='X-UA-Compatible' content='IE=edge' /><base target='_self'/></head><body><form method='post' action='{uri}'>{body}<noscript><button>Click to continue</button></noscript></form><script>window.addEventListener('load', function(){document.forms[0].submit();});</script></body></html>";
 
         private string GetFormPostHtml()
         {
