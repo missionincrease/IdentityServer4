@@ -37,7 +37,6 @@ namespace IdentityServer4.Stores
             _inner = inner;
             _cache = cache;
             _logger = logger;
-            _logger.LogInformation("CachingClientStore Constructor called");
         }
 
         /// <summary>
@@ -49,8 +48,6 @@ namespace IdentityServer4.Stores
         /// </returns>
         public async Task<Client> FindClientByIdAsync(string clientId)
         {
-           _logger.LogInformation($"CachingClientStore.FindClientByIdAsync: {clientId}");
-           _logger.LogInformation($"Caching Expiration: {_options.Caching.ClientStoreExpiration}");
            var client = await _cache.GetAsync(clientId,
                 _options.Caching.ClientStoreExpiration,
                 async () => await _inner.FindClientByIdAsync(clientId),
