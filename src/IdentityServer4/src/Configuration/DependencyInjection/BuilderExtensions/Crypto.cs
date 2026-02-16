@@ -8,6 +8,7 @@ using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
@@ -173,7 +174,9 @@ namespace Microsoft.Extensions.DependencyInjection
             if (File.Exists(filename))
             {
                 var json = File.ReadAllText(filename);
-                var jwk = new JsonWebKey(json);
+                var jwk = ParseJsonWebKeyFromString(json);
+                if (jwk == null)
+                    throw new InvalidOperationException($"Could not parse JWK from {filename}. Ensure the file contains valid JSON (double-quoted).");
 
                 return builder.AddSigningCredential(jwk, jwk.Alg);
             }
@@ -294,6 +297,29 @@ namespace Microsoft.Extensions.DependencyInjection
             if (certificate == null) throw new InvalidOperationException($"certificate: '{name}' not found in certificate store");
 
             return builder.AddValidationKey(certificate, signingAlgorithm);
+        }
+
+        /// <summary>
+        /// Parses JWK from JSON string. Falls back to Newtonsoft when IdentityModel rejects single-quoted JSON (IDX10805).
+        /// </summary>
+        private static JsonWebKey ParseJsonWebKeyFromString(string json)
+        {
+            try
+            {
+                return new JsonWebKey(json);
+            }
+            catch
+            {
+                try
+                {
+                    var parsed = JToken.Parse(json);
+                    return new JsonWebKey(parsed.ToString());
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
     }
 }

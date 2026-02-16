@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using IdentityServer4.Configuration;
 
 namespace IdentityServer4.ResponseHandling
@@ -46,7 +45,7 @@ namespace IdentityServer4.ResponseHandling
         /// <summary>
         /// The clock
         /// </summary>
-        protected readonly ISystemClock Clock;
+        protected readonly TimeProvider Clock;
 
         /// <summary>
         /// The key material service
@@ -56,21 +55,21 @@ namespace IdentityServer4.ResponseHandling
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizeResponseGenerator"/> class.
         /// </summary>
-        /// <param name="clock">The clock.</param>
+        /// <param name="timeProvider">The time provider.</param>
         /// <param name="logger">The logger.</param>
         /// <param name="tokenService">The token service.</param>
         /// <param name="keyMaterialService"></param>
         /// <param name="authorizationCodeStore">The authorization code store.</param>
         /// <param name="events">The events.</param>
         public AuthorizeResponseGenerator(
-            ISystemClock clock,
+            TimeProvider timeProvider,
             ITokenService tokenService,
             IKeyMaterialService keyMaterialService,
             IAuthorizationCodeStore authorizationCodeStore,
             ILogger<AuthorizeResponseGenerator> logger,
             IEventService events)
         {
-            Clock = clock;
+            Clock = timeProvider;
             TokenService = tokenService;
             KeyMaterialService = keyMaterialService;
             AuthorizationCodeStore = authorizationCodeStore;
@@ -240,7 +239,7 @@ namespace IdentityServer4.ResponseHandling
 
             var code = new AuthorizationCode
             {
-                CreationTime = Clock.UtcNow.UtcDateTime,
+                CreationTime = Clock.GetUtcNow().UtcDateTime,
                 ClientId = request.Client.ClientId,
                 Lifetime = request.Client.AuthorizationCodeLifetime,
                 Subject = request.Subject,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -23,7 +23,7 @@ namespace IdentityServer.UnitTests.Validation
 
         private IClientStore _clients = Factory.CreateClientStore();
         private IdentityServerOptions _options = new IdentityServerOptions();
-        private StubClock _clock = new StubClock();
+        private StubTimeProvider _timeProvider = new StubTimeProvider();
 
         static AccessTokenValidation()
         {
@@ -42,7 +42,7 @@ namespace IdentityServer.UnitTests.Validation
 
         public AccessTokenValidation()
         {
-            _clock.UtcNowFunc = () => UtcNow;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(UtcNow);
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace IdentityServer.UnitTests.Validation
             now = DateTime.UtcNow;
 
             var store = Factory.CreateReferenceTokenStore();
-            var validator = Factory.CreateTokenValidator(store, clock:_clock);
+            var validator = Factory.CreateTokenValidator(store, timeProvider:_timeProvider);
 
             var token = TokenFactory.CreateAccessToken(new Client { ClientId = "roclient" }, "valid", 2, "read", "write");
             token.CreationTime = now;

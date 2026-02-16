@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -28,7 +28,7 @@ namespace IdentityServer.UnitTests.Validation.Secrets
         public SecretValidation()
         {
             _validator = new SecretValidator(
-                new StubClock(),
+                new StubTimeProvider(),
                 new[] { _hashedSecretValidator }, 
                 new Logger<SecretValidator>(new LoggerFactory()));
         }

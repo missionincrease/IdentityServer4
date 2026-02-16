@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -36,7 +36,7 @@ namespace IdentityServer.UnitTests.Services.Default
         {
             _mockMockHttpContextAccessor = new MockHttpContextAccessor(_options, _mockUserSession, _mockEndSessionStore);
 
-            _subject = new DefaultIdentityServerInteractionService(new StubClock(), 
+            _subject = new DefaultIdentityServerInteractionService(new StubTimeProvider(), 
                 _mockMockHttpContextAccessor,
                 _mockLogoutMessageStore,
                 _mockErrorMessageStore,
@@ -110,15 +110,15 @@ namespace IdentityServer.UnitTests.Services.Default
         }
 
         [Fact]
-        public void GrantConsentAsync_should_throw_if_granted_and_no_subject()
+        public async Task GrantConsentAsync_should_throw_if_granted_and_no_subject()
         {
             Func<Task> act = () => _subject.GrantConsentAsync(
                 new AuthorizationRequest(), 
                 new ConsentResponse() { ScopesValuesConsented = new[] { "openid" } }, 
                 null);
 
-            act.Should().Throw<ArgumentNullException>()
-                .And.Message.Should().Contain("subject");
+            var exception = await act.Should().ThrowAsync<ArgumentNullException>();
+            exception.And.Message.Should().Contain("subject");
         }
 
         [Fact]

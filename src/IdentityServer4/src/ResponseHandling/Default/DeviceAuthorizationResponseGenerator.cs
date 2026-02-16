@@ -9,7 +9,6 @@ using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer4.ResponseHandling
@@ -36,9 +35,9 @@ namespace IdentityServer4.ResponseHandling
         protected readonly IDeviceFlowCodeService DeviceFlowCodeService;
 
         /// <summary>
-        /// The clock
+        /// The time provider
         /// </summary>
-        protected readonly ISystemClock Clock;
+        protected readonly TimeProvider Clock;
 
         /// <summary>
         /// The logger
@@ -51,14 +50,14 @@ namespace IdentityServer4.ResponseHandling
         /// <param name="options">The options.</param>
         /// <param name="userCodeService">The user code service.</param>
         /// <param name="deviceFlowCodeService">The device flow code service.</param>
-        /// <param name="clock">The clock.</param>
+        /// <param name="timeProvider">The time provider.</param>
         /// <param name="logger">The logger.</param>
-        public DeviceAuthorizationResponseGenerator(IdentityServerOptions options, IUserCodeService userCodeService, IDeviceFlowCodeService deviceFlowCodeService, ISystemClock clock, ILogger<DeviceAuthorizationResponseGenerator> logger)
+        public DeviceAuthorizationResponseGenerator(IdentityServerOptions options, IUserCodeService userCodeService, IDeviceFlowCodeService deviceFlowCodeService, TimeProvider timeProvider, ILogger<DeviceAuthorizationResponseGenerator> logger)
         {
             Options = options;
             UserCodeService = userCodeService;
             DeviceFlowCodeService = deviceFlowCodeService;
-            Clock = clock;
+            Clock = timeProvider;
             Logger = logger;
         }
 
@@ -133,7 +132,7 @@ namespace IdentityServer4.ResponseHandling
                 ClientId = validationResult.ValidatedRequest.Client.ClientId,
                 IsOpenId = validationResult.ValidatedRequest.IsOpenIdRequest,
                 Lifetime = response.DeviceCodeLifetime,
-                CreationTime = Clock.UtcNow.UtcDateTime,
+                CreationTime = Clock.GetUtcNow().UtcDateTime,
                 RequestedScopes = validationResult.ValidatedRequest.ValidatedResources.RawScopeValues
             });
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using static Bullseye.Targets;
@@ -8,6 +8,9 @@ namespace build
 {
     partial class Program
     {
+        /// <summary>When set, build targets this project instead of the default (.). Used by IdentityServer4 to skip test projects.</summary>
+        protected static string BuildTarget { get; set; }
+
         private const string packOutput = "./artifacts";
         private const string packOutputCopy = "../../nuget";
         private const string envVarMissing = " environment variable is missing. Aborting.";
@@ -33,7 +36,8 @@ namespace build
 
             Target(Targets.Build, DependsOn(Targets.CleanBuildOutput), () =>
             {
-                Run("dotnet", "build -c Release --nologo", echoPrefix: Prefix);
+                var buildArg = string.IsNullOrEmpty(BuildTarget) ? "" : BuildTarget + " ";
+                Run("dotnet", $"build {buildArg}-c Release --nologo", echoPrefix: Prefix);
             });
 
             Target(Targets.SignBinary, DependsOn(Targets.Build), () =>

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -100,13 +101,21 @@ namespace IdentityServer.IntegrationTests.Conformance.Basic
             var state = Guid.NewGuid().ToString();
             var nonce = Guid.NewGuid().ToString();
 
-            var url = _mockPipeline.CreateAuthorizeUrl(
-                clientId: "code_client",
-                responseType: null, // missing
-                scope: "openid",
-                redirectUri: "https://code_client/callback",
-                state: state,
-                nonce: nonce);
+            // .NET 10 / IdentityModel 7 upgrade fix:
+            // IdentityModel 7's RequestUrlExtensions.CreateAuthorizeUrl now requires response_type
+            // and throws ArgumentException if null/empty. We need to test that the server (IdentityServer4)
+            // correctly rejects requests missing response_type. Build the URL manually here so we can
+            // omit response_type and verify server returns "unsupported_response_type".
+            var queryParams = new Dictionary<string, string>
+            {
+                { "client_id", "code_client" },
+                { "scope", "openid" },
+                { "redirect_uri", "https://code_client/callback" },
+                { "state", state },
+                { "nonce", nonce }
+            };
+            var query = string.Join("&", queryParams.Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value)}"));
+            var url = IdentityServerPipeline.AuthorizeEndpoint + "?" + query;
 
             _mockPipeline.BrowserClient.AllowAutoRedirect = true;
             var response = await _mockPipeline.BrowserClient.GetAsync(url);

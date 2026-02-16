@@ -21,12 +21,12 @@ namespace IdentityServer.UnitTests.ResponseHandling.AuthorizeInteractionResponse
         private IdentityServerOptions _options = new IdentityServerOptions();
         private IdentityServer4.ResponseHandling.AuthorizeInteractionResponseGenerator _subject;
         private MockConsentService _mockConsentService = new MockConsentService();
-        private StubClock _clock = new StubClock();
+        private StubTimeProvider _timeProvider = new StubTimeProvider();
 
         public AuthorizeInteractionResponseGeneratorTests()
         {
             _subject = new IdentityServer4.ResponseHandling.AuthorizeInteractionResponseGenerator(
-                _clock,
+                _timeProvider,
                 TestLogger.Create<IdentityServer4.ResponseHandling.AuthorizeInteractionResponseGenerator>(),
                 _mockConsentService,
                 new MockProfileService());
@@ -63,7 +63,7 @@ namespace IdentityServer.UnitTests.ResponseHandling.AuthorizeInteractionResponse
         [Fact]
         public async Task Authenticated_User_with_maxage_with_prompt_none_must_error()
         {
-            _clock.UtcNowFunc = () => new DateTime(2020, 02, 03, 9, 0, 0);
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(2020, 02, 03, 9, 0, 0, TimeSpan.Zero);
 
             var request = new ValidatedAuthorizeRequest
             {
@@ -123,7 +123,7 @@ namespace IdentityServer.UnitTests.ResponseHandling.AuthorizeInteractionResponse
                 Subject = new IdentityServerUser("123")
                 {
                     IdentityProvider = "local",
-                    AuthenticationTime = _clock.UtcNow.UtcDateTime.Subtract(TimeSpan.FromSeconds(3700))
+                    AuthenticationTime = _timeProvider.GetUtcNow().UtcDateTime.Subtract(TimeSpan.FromSeconds(3700))
                 }.CreatePrincipal(),
                 PromptModes = new[] { PromptModes.None }
             };

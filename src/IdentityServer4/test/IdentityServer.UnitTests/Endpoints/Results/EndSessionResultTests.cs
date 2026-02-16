@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -36,7 +36,7 @@ namespace IdentityServer.UnitTests.Endpoints.Results
             _options.UserInteraction.LogoutUrl = "~/logout";
             _options.UserInteraction.LogoutIdParameter = "logoutId";
 
-            _subject = new EndSessionResult(_result, _options, new StubClock(), _mockLogoutMessageStore);
+            _subject = new EndSessionResult(_result, _options, new StubTimeProvider(), _mockLogoutMessageStore);
         }
 
         [Fact]

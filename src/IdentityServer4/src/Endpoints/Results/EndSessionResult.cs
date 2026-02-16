@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -12,7 +12,6 @@ using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using IdentityServer4.Extensions;
 using System;
-using Microsoft.AspNetCore.Authentication;
 
 namespace IdentityServer4.Endpoints.Results
 {
@@ -37,23 +36,23 @@ namespace IdentityServer4.Endpoints.Results
         internal EndSessionResult(
             EndSessionValidationResult result,
             IdentityServerOptions options,
-            ISystemClock clock,
+            TimeProvider timeProvider,
             IMessageStore<LogoutMessage> logoutMessageStore)
             : this(result)
         {
             _options = options;
-            _clock = clock;
+            _timeProvider = timeProvider;
             _logoutMessageStore = logoutMessageStore;
         }
 
         private IdentityServerOptions _options;
-        private ISystemClock _clock;
+        private TimeProvider _timeProvider;
         private IMessageStore<LogoutMessage> _logoutMessageStore;
 
         private void Init(HttpContext context)
         {
             _options = _options ?? context.RequestServices.GetRequiredService<IdentityServerOptions>();
-            _clock = _clock ?? context.RequestServices.GetRequiredService<ISystemClock>();
+            _timeProvider = _timeProvider ?? context.RequestServices.GetRequiredService<TimeProvider>();
             _logoutMessageStore = _logoutMessageStore ?? context.RequestServices.GetRequiredService<IMessageStore<LogoutMessage>>();
         }
 
@@ -75,7 +74,7 @@ namespace IdentityServer4.Endpoints.Results
                 var logoutMessage = new LogoutMessage(validatedRequest);
                 if (logoutMessage.ContainsPayload)
                 {
-                    var msg = new Message<LogoutMessage>(logoutMessage, _clock.UtcNow.UtcDateTime);
+                    var msg = new Message<LogoutMessage>(logoutMessage, _timeProvider.GetUtcNow().UtcDateTime);
                     id = await _logoutMessageStore.WriteAsync(msg);
                 }
             }
