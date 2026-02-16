@@ -1,11 +1,13 @@
 <Project>
 
   <PropertyGroup>
-    <FrameworkVersion>10.0.0</FrameworkVersion>
-    <ExtensionsVersion>10.0.0</ExtensionsVersion>
-    <EntityFrameworkVersion>10.0.0</EntityFrameworkVersion>
+    <!-- Latest .NET 10 patch (10.0.3 as of Feb 2026). Use 10.0.* to auto-resolve to newest patch on restore. -->
+    <FrameworkVersion>10.0.*</FrameworkVersion>
+    <ExtensionsVersion>10.0.*</ExtensionsVersion>
+    <EntityFrameworkVersion>10.0.*</EntityFrameworkVersion>
     
-    <IdentityServerVersion>4.1.3-*</IdentityServerVersion>
+    <!-- Unofficial fork: forked from official 4.1.2. 4.1.3 and 4.1.4 are .NET 10 upgrades, not upstream releases. -->
+    <IdentityServerVersion>4.1.4-*</IdentityServerVersion>
   </PropertyGroup>
 
   <ItemGroup>
