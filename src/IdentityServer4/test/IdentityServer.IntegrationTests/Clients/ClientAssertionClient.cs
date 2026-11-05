@@ -24,6 +24,16 @@ using Xunit;
 
 namespace IdentityServer.IntegrationTests.Clients
 {
+    /// <summary>
+    /// Tests client authentication via JWT bearer client assertion.
+    /// 
+    /// .NET 10 / IdentityModel 7 upgrade fix:
+    /// IdentityModel 7 added validation in ProtocolRequest.Prepare() that rejects the combination
+    /// of CredentialStyle.AuthorizationHeader with client assertions. Previously the default was
+    /// AuthorizationHeader; now we must explicitly set ClientCredentialStyle.PostBody when using
+    /// ClientAssertion so credentials are sent in the POST body only. Without this, the client
+    /// library throws InvalidOperationException before the request is ever sent.
+    /// </summary>
     public class ClientAssertionClient
     {
         private const string TokenEndpoint = "https://idsvr4/connect/token";
@@ -68,6 +78,8 @@ namespace IdentityServer.IntegrationTests.Clients
                 Address = TokenEndpoint,
 
                 ClientId = ClientId,
+                // See class summary: IdentityModel 7 requires PostBody when using ClientAssertion
+                ClientCredentialStyle = ClientCredentialStyle.PostBody,
                 ClientAssertion =
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,
@@ -89,7 +101,8 @@ namespace IdentityServer.IntegrationTests.Clients
             {
                 Address = TokenEndpoint,
                 ClientId = "client",
-
+                // See class summary: IdentityModel 7 requires PostBody when using ClientAssertion
+                ClientCredentialStyle = ClientCredentialStyle.PostBody,
                 ClientAssertion =
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,
@@ -112,6 +125,8 @@ namespace IdentityServer.IntegrationTests.Clients
                 Address = TokenEndpoint,
 
                 ClientId = ClientId,
+                // See class summary: IdentityModel 7 requires PostBody when using ClientAssertion
+                ClientCredentialStyle = ClientCredentialStyle.PostBody,
                 ClientAssertion =
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,
@@ -129,6 +144,8 @@ namespace IdentityServer.IntegrationTests.Clients
                 Address = TokenEndpoint,
 
                 ClientId = ClientId,
+                // See class summary: IdentityModel 7 requires PostBody when using ClientAssertion
+                ClientCredentialStyle = ClientCredentialStyle.PostBody,
                 ClientAssertion =
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,
@@ -150,6 +167,8 @@ namespace IdentityServer.IntegrationTests.Clients
                 Address = TokenEndpoint,
 
                 ClientId = ClientId,
+                // See class summary: IdentityModel 7 requires PostBody when using ClientAssertion
+                ClientCredentialStyle = ClientCredentialStyle.PostBody,
                 ClientAssertion =
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,
@@ -175,6 +194,8 @@ namespace IdentityServer.IntegrationTests.Clients
                 Address = TokenEndpoint,
 
                 ClientId = clientId,
+                // See class summary: IdentityModel 7 requires PostBody when using ClientAssertion
+                ClientCredentialStyle = ClientCredentialStyle.PostBody,
                 ClientAssertion =
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,

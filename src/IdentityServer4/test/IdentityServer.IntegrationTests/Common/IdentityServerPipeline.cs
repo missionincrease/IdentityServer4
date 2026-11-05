@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -320,6 +321,22 @@ namespace IdentityServer.IntegrationTests.Common
             string codeChallengeMethod = null,
             object extra = null)
         {
+            Parameters extraParams = null;
+            if (extra != null)
+            {
+                if (extra is Parameters p)
+                    extraParams = p;
+                else
+                {
+                    var dict = new Dictionary<string, string>();
+                    foreach (var prop in extra.GetType().GetProperties())
+                    {
+                        var v = prop.GetValue(extra);
+                        if (v != null) dict[prop.Name] = v.ToString();
+                    }
+                    extraParams = new Parameters(dict);
+                }
+            }
             var url = new RequestUrl(AuthorizeEndpoint).CreateAuthorizeUrl(
                 clientId: clientId,
                 responseType: responseType,
@@ -332,7 +349,7 @@ namespace IdentityServer.IntegrationTests.Common
                 responseMode: responseMode,
                 codeChallenge: codeChallenge,
                 codeChallengeMethod: codeChallengeMethod,
-                extra: extra);
+                extra: extraParams);
             return url;
         }
 

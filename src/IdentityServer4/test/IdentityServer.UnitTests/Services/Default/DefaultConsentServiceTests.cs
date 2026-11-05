@@ -1,4 +1,4 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
@@ -26,13 +26,13 @@ namespace IdentityServer.UnitTests.Services.Default
         private ClaimsPrincipal _user;
         private Client _client;
         private TestUserConsentStore _userConsentStore = new TestUserConsentStore();
-        private StubClock _clock = new StubClock();
+        private StubTimeProvider _timeProvider = new StubTimeProvider();
 
         private DateTime now;
 
         public DefaultConsentServiceTests()
         {
-            _clock.UtcNowFunc = () => UtcNow;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(UtcNow);
 
             _client = new Client
             {
@@ -53,7 +53,7 @@ namespace IdentityServer.UnitTests.Services.Default
                 }
             }.CreatePrincipal();
 
-            _subject = new DefaultConsentService(_clock, _userConsentStore, TestLogger.Create<DefaultConsentService>());
+            _subject = new DefaultConsentService(_timeProvider, _userConsentStore, TestLogger.Create<DefaultConsentService>());
         }
 
         public DateTime UtcNow

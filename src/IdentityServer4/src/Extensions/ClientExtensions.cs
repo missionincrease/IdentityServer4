@@ -3,6 +3,7 @@
 
 
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,11 +45,38 @@ namespace IdentityServer4.Models
 
             var jwks = secretList
                         .Where(s => s.Type == IdentityServerConstants.SecretTypes.JsonWebKey)
-                        .Select(s => new Microsoft.IdentityModel.Tokens.JsonWebKey(s.Value))
+                        .Select(s => ParseJsonWebKey(s.Value))
+                        .Where(jwk => jwk != null)
                         .ToList();
             keys.AddRange(jwks);
 
             return Task.FromResult(keys);
+        }
+
+        /// <summary>
+        /// Parses a JWK JSON string. Microsoft.IdentityModel 7 uses System.Text.Json which rejects single-quoted JSON
+        /// (IDX10805). Falls back to Newtonsoft parsing and re-serialization when direct parse fails.
+        /// </summary>
+        private static Microsoft.IdentityModel.Tokens.JsonWebKey ParseJsonWebKey(string value)
+        {
+            try
+            {
+                return new Microsoft.IdentityModel.Tokens.JsonWebKey(value);
+            }
+            catch
+            {
+                try
+                {
+                    // Newtonsoft accepts single-quoted JSON; re-serialize to produce valid JSON for IdentityModel.
+                    var parsed = JToken.Parse(value);
+                    var normalized = parsed.ToString();
+                    return new Microsoft.IdentityModel.Tokens.JsonWebKey(normalized);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
 
         private static List<X509Certificate2> GetCertificates(IEnumerable<Secret> secrets)

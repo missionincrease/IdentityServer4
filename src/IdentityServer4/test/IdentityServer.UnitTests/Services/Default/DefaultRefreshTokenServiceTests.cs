@@ -20,7 +20,7 @@ namespace IdentityServer.UnitTests.Services.Default
         private DefaultRefreshTokenStore _store;
 
         private ClaimsPrincipal _user = new IdentityServerUser("123").CreatePrincipal();
-        private StubClock _clock = new StubClock();
+        private StubTimeProvider _timeProvider = new StubTimeProvider();
 
         public DefaultRefreshTokenServiceTests()
         {
@@ -33,7 +33,7 @@ namespace IdentityServer.UnitTests.Services.Default
             _subject = new DefaultRefreshTokenService(
                 _store, 
                 new TestProfileService(),
-                _clock, 
+                _timeProvider, 
                 TestLogger.Create<DefaultRefreshTokenService>());
         }
 
@@ -152,7 +152,7 @@ namespace IdentityServer.UnitTests.Services.Default
             };
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var handle = await _store.StoreRefreshTokenAsync(new RefreshToken
             {
@@ -193,7 +193,7 @@ namespace IdentityServer.UnitTests.Services.Default
             };
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var handle = await _store.StoreRefreshTokenAsync(new RefreshToken
             {
@@ -234,7 +234,7 @@ namespace IdentityServer.UnitTests.Services.Default
             };
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var handle = await _store.StoreRefreshTokenAsync(new RefreshToken
             {
@@ -275,7 +275,7 @@ namespace IdentityServer.UnitTests.Services.Default
             };
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var handle = await _store.StoreRefreshTokenAsync(new RefreshToken
             {
@@ -331,7 +331,7 @@ namespace IdentityServer.UnitTests.Services.Default
             var handle = await _store.StoreRefreshTokenAsync(refreshToken);
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var newHandle = await _subject.UpdateRefreshTokenAsync(handle, refreshToken, client);
 
@@ -384,7 +384,7 @@ namespace IdentityServer.UnitTests.Services.Default
             var handle = await _store.StoreRefreshTokenAsync(refreshToken);
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var result = await _subject.ValidateRefreshTokenAsync(handle, client);
 
@@ -420,7 +420,7 @@ namespace IdentityServer.UnitTests.Services.Default
             var handle = await _store.StoreRefreshTokenAsync(refreshToken);
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var result = await _subject.ValidateRefreshTokenAsync(handle, client);
 
@@ -456,7 +456,7 @@ namespace IdentityServer.UnitTests.Services.Default
             var handle = await _store.StoreRefreshTokenAsync(refreshToken);
 
             var now = DateTime.UtcNow.AddSeconds(20);
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var result = await _subject.ValidateRefreshTokenAsync(handle, client);
 
@@ -494,7 +494,7 @@ namespace IdentityServer.UnitTests.Services.Default
             var handle = await _store.StoreRefreshTokenAsync(refreshToken);
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var result = await _subject.ValidateRefreshTokenAsync(handle, client);
 
@@ -530,7 +530,7 @@ namespace IdentityServer.UnitTests.Services.Default
             var handle = await _store.StoreRefreshTokenAsync(refreshToken);
 
             var now = DateTime.UtcNow;
-            _clock.UtcNowFunc = () => now;
+            _timeProvider.UtcNowFunc = () => new DateTimeOffset(now);
 
             var result = await _subject.ValidateRefreshTokenAsync(handle, client);
 

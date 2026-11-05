@@ -4,7 +4,6 @@
 
 using IdentityModel;
 using IdentityServer4.Models;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,6 +11,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using IdentityServer4.Configuration;
 
 namespace IdentityServer4.Extensions
@@ -25,20 +25,21 @@ namespace IdentityServer4.Extensions
         /// Creates the default JWT payload.
         /// </summary>
         /// <param name="token">The token.</param>
-        /// <param name="clock">The clock.</param>
+        /// <param name="timeProvider">The time provider.</param>
         /// <param name="options">The options</param>
         /// <param name="logger">The logger.</param>
         /// <returns></returns>
         /// <exception cref="Exception">
         /// </exception>
-        public static JwtPayload CreateJwtPayload(this Token token, ISystemClock clock, IdentityServerOptions options, ILogger logger)
+        public static JwtPayload CreateJwtPayload(this Token token, TimeProvider timeProvider, IdentityServerOptions options, ILogger logger)
         {
+            var now = timeProvider.GetUtcNow().UtcDateTime;
             var payload = new JwtPayload(
                 token.Issuer,
                 null,
                 null,
-                clock.UtcNow.UtcDateTime,
-                clock.UtcNow.UtcDateTime.AddSeconds(token.Lifetime));
+                now,
+                now.AddSeconds(token.Lifetime));
 
             foreach (var aud in token.Audiences)
             {
@@ -48,11 +49,13 @@ namespace IdentityServer4.Extensions
             var amrClaims = token.Claims.Where(x => x.Type == JwtClaimTypes.AuthenticationMethod).ToArray();
             var scopeClaims = token.Claims.Where(x => x.Type == JwtClaimTypes.Scope).ToArray();
             var jsonClaims = token.Claims.Where(x => x.ValueType == IdentityServerConstants.ClaimValueTypes.Json).ToList();
-            
-            // add confirmation claim if present (it's JSON valued)
+
+            // add cnf claim if present - use JsonElement for IdentityModel 7 compatibility (System.Text.Json);
+            // JObject/Newtonsoft types are not serialized correctly when IdentityModel writes the JWT.
             if (token.Confirmation.IsPresent())
             {
-                jsonClaims.Add(new Claim(JwtClaimTypes.Confirmation, token.Confirmation, IdentityServerConstants.ClaimValueTypes.Json));
+                var cnfElement = JsonSerializer.Deserialize<JsonElement>(token.Confirmation);
+                payload.Add(JwtClaimTypes.Confirmation, cnfElement);
             }
 
             var normalClaims = token.Claims
@@ -91,6 +94,8 @@ namespace IdentityServer4.Extensions
             {
                 var jsonTokens = jsonClaims.Select(x => new { x.Type, JsonValue = JRaw.Parse(x.Value) }).ToArray();
 
+                // IdentityModel 7 uses System.Text.Json when writing JWT; JObject/JArray are not serialized correctly.
+                // Convert to JsonElement for all JSON-valued claims (same fix as cnf claim).
                 var jsonObjects = jsonTokens.Where(x => x.JsonValue.Type == JTokenType.Object).ToArray();
                 var jsonObjectGroups = jsonObjects.GroupBy(x => x.Type).ToArray();
                 foreach (var group in jsonObjectGroups)
@@ -102,13 +107,17 @@ namespace IdentityServer4.Extensions
 
                     if (group.Skip(1).Any())
                     {
-                        // add as array
-                        payload.Add(group.Key, group.Select(x => x.JsonValue).ToArray());
+                        var elements = group.Select(x =>
+                        {
+                            var json = x.JsonValue.ToString();
+                            return JsonSerializer.Deserialize<JsonElement>(json);
+                        }).ToArray();
+                        payload.Add(group.Key, elements);
                     }
                     else
                     {
-                        // add just one
-                        payload.Add(group.Key, group.First().JsonValue);
+                        var json = group.First().JsonValue.ToString();
+                        payload.Add(group.Key, JsonSerializer.Deserialize<JsonElement>(json));
                     }
                 }
 
@@ -122,14 +131,16 @@ namespace IdentityServer4.Extensions
                             $"Can't add two claims where one is a JSON array and the other is not a JSON array ({group.Key})");
                     }
 
-                    var newArr = new List<JToken>();
+                    var newArr = new List<JsonElement>();
                     foreach (var arrays in group)
                     {
                         var arr = (JArray)arrays.JsonValue;
-                        newArr.AddRange(arr);
+                        foreach (var item in arr)
+                        {
+                            newArr.Add(JsonSerializer.Deserialize<JsonElement>(item.ToString()));
+                        }
                     }
 
-                    // add just one array for the group/key/claim type
                     payload.Add(group.Key, newArr.ToArray());
                 }
 
